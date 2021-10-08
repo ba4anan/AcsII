@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" >
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff">
+    <meta name="format-detection" content="telephone=no">
+		<title>My first three.js app</title>
+		<style>
+		body{
+			/*width: 100px;
+			height: 100px;*/
+		}
+
+		canvas{width: 200px;
+			height: 200px;}
+	
+		#button-block{
+			z-index: 3;
+			position: absolute;
+			margin-top: 2%;
+			height: 30%;
+			width: 10%;
+		
+
+
+		}
+		button {
+			cursor: pointer;
+	
+			z-index: 3000;
+			width: 56%;
+			height: 12%;
+
+		}
+		input {
+			/*display: none;*/
+		/*	position: absolute;
+			orient: vertical;
+			top: 20%;
+			left: 20px;
+			width: 280px;
+			height: 110px;
+			 transform: rotate(90deg);*/
+			/*max-width: 100px;
+		
+			max-height: 30px;*/
+
+
+		}
+input[type=range]  {
+      width: 200px;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+       transform: rotate(90deg)
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      border-radius: 4px/200%;
+      width: 20px;
+      /*height: 7px;*/
+	 /* border: 1px solid cyan;*/
+    /*  background-color: #fff;*/
+
+    }
+    
+
+    
+   
+
+			body { margin: 0; cursor: none;}
+			#dom .table{display: none;}
+		.tbody{display: none;}
+		</style>
+		<link rel="stylesheet" media="all" href="css/app.css">	
+		<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet"> 
+	</head>
+	
+	<body>
+	
+		<div id="button-block">
+		<button id="change">Press</button>
+		<button id="color">8bit</button>
+		<button id="WB">WB</button>
+		<button id="random">Random</button>
+		<button id="rotate">Rotate</button>
+		<button id="inv">Invert</button>			
+		<input type="range" min="0" max="100" step="1" value="15" id="zoom"> zoom	</input>
+</div>
+	<!-- 	<script type="module" src="examples/js/effects/app.js"></script> -->
+		<script src="build/three.js"></script>
+		<script src="examples/js/effects/AsciiEffect.js"></script>
+		<script src="examples/js/effects/white-black.js"></script>
+		<script src="examples/js/effects/Random.js"></script>
+		<script src="examples/js/loaders/MTLLoader.js"></script>
+		<script src="examples/js/loaders/OBJLoader.js"></script>
+ 
+ 	<!-- 	</div> -->
+		<script>
+
+
+var scene = new THREE.Scene();
+var children = []
+var rotate, stobe = false;
+let txt
+var wireframeGeomtry;
+var wireframeMaterial ;
+var wireframe ;
+document.getElementById( "change" ).addEventListener( 'click', function () {
+
+	if(!stobe){
+		stobe=true
+	}
+	else{
+		stobe=false
+	}
+
+})
+document.getElementById( "rotate" ).addEventListener( 'click', function () {
+
+	if(!rotate){
+		rotate=true
+	}
+	else{
+		rotate=false
+	}
+
+})
+
+
+
+
+function throttle(func, wait) {
+    var args,
+        result,
+        thisArg,
+        timeoutId,
+        lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+
+    return function() {
+      var now = new Date,
+          lastCalled = lastCalled || new Date,
+          remain = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remain <= 0) {
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      }
+      else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remain);
+      }
+      return result;
+    };
+}
+
+var fieldOfView = 30;
+
+var aspectRatio = window.innerWidth / window.innerHeight;
+
+var nearPlane = 0.1;
+var farPlane = 1000;
+var renderer = new THREE.WebGLRenderer();
+
+
+// Use the values specified above to create a camera
+var camera = new THREE.PerspectiveCamera(
+  fieldOfView, aspectRatio, nearPlane, farPlane
+);
+document.getElementById("zoom").addEventListener( 'pointermove', function (value){
+	console.log(zoom.value)
+	camera.position.z = zoom.value;
+	camera.update
+});
+
+
+camera.position.z = 15;
+
+
+var objLoader = new THREE.OBJLoader();
+var mtlLoader = new THREE.MTLLoader();
+const group = new THREE.Group();
+mtlLoader.load('gos.mtl', function (braun) {
+  			braun.preload();
+  			objLoader.setMaterials(braun);
+objLoader.load('gos.obj', function (panel) {
+					group.scale.multiplyScalar( 0.0004 );
+					group.rotation.y = -45.5
+					scene.add( group );
+					group.updateMatrixWorld( true );
+panel.traverse( function ( child ) {
+	if ( child.isMesh ) {
+		 wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
+		 wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true } );
+		 wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
+   		child.add(wireframe)
+   		group.add( child );
+   	}
+  
+renderer.setSize( window.innerWidth/ 4.4 , window.innerHeight/ 4.04  );
+   })
+   	
+         })
+
+
+
+
+       })
+
+   				function setWirMat (on){
+   					console.log(scene.children.length)
+	 				wireframeMaterial.opacity= on
+				
+   					  
+	 	renderer.render( scene, camera );
+	
+}
+   				  
+				     
+   				   	// animate();
+
+let filter='AsciiEffect'
+var loader = new THREE.TextureLoader();
+var materialS = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+//   map: loader.load('hsaer5.jpg')
+
+// });
+var geometry = new THREE.PlaneGeometry(0.1, 0.1);
+const cube = new THREE.Mesh( geometry, materialS );
+scene.add( cube );
+
+
+
+effect = new THREE.AsciiEffect(renderer, '', {invert:true});
+			effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+
+			document.getElementById( "WB" ).addEventListener( 'click', function () {
+				scene.background = new THREE.Color( 0x000 );
+var obj= document.getElementById("dom")
+	obj.remove();
+	filter='WhiteToBlack'
+	effect = new THREE.WhiteToBlack(renderer, '', {invert:true});
+				effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+				document.body.appendChild( effect.domElement );
+			effect.domElement.id = "dom";
+			
+	
+})
+
+	document.getElementById( "random" ).addEventListener( 'click', function () {
+		scene.background = new THREE.Color( 0x000 );
+var obj= document.getElementById("dom")
+	obj.remove();
+	filter='Random'
+	effect = new THREE.Random	(renderer, '', {invert:true});
+				effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+			document.body.appendChild( effect.domElement );
+			effect.domElement.id = "dom";
+
+	
+})
+
+document.getElementById( "color" ).addEventListener( 'click', function () {
+		scene.background = new THREE.Color( 0x000 );
+	if (color.innerHTML == "8bit") {
+    		color.innerHTML = "2bit";
+  var obj= document.getElementById("dom")
+	obj.remove();
+filter='AsciiEffectColor'
+effect = new THREE.AsciiEffect(renderer, '', {color:true}, {invert:true});
+			effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+			document.body.appendChild( effect.domElement );
+			effect.domElement.id = "dom";
+		
+  } 
+  		else {
+    		color.innerHTML = "8bit";
+    		var obj= document.getElementById("dom")
+	obj.remove();
+	filter='AsciiEffect'
+	effect = new THREE.AsciiEffect(renderer, '', {invert:true});
+				effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'white';
+			effect.domElement.style.backgroundColor = 'black';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+    		
+  }
+	
+})
+document.getElementById( "inv" ).addEventListener( 'click', function () {
+	console.log(filter)
+	scene.background = new THREE.Color( 0xffffff );
+	var obj= document.getElementById("dom")
+	obj.remove();
+	if(filter==='AsciiEffect'){
+		effect = new THREE.AsciiEffect(renderer, '', {invert:false});
+		effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04 );
+			effect.domElement.style.color = 'black';
+			effect.domElement.style.backgroundColor = 'white';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+		}
+		if(filter==='Random'){
+		effect = new THREE.Random(renderer, '', {invert:false});
+		effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'black';
+			effect.domElement.style.backgroundColor = 'white';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+		}
+		if(filter==='AsciiEffectColor'){
+		effect = new THREE.AsciiEffect(renderer, '',{color:true}, {invert:false});
+		effect.setSize(  window.innerWidth/ 2.4 , window.innerHeight/ 2.04 );
+			effect.domElement.style.color = 'black';
+			effect.domElement.style.backgroundColor = 'white';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+		}
+		if(filter==='WhiteToBlack'){
+		effect = new THREE.WhiteToBlack(renderer, '', {invert:false});
+		effect.setSize(  window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+			effect.domElement.style.color = 'black';
+			effect.domElement.style.backgroundColor = 'white';
+			effect.domElement.id = "dom";
+			document.body.appendChild( effect.domElement );
+		}
+			
+		
+
+})
+
+// scene.add( new THREE.AmbientLight( 0x404040 , 7.3) )
+var spotLight = new THREE.SpotLight( 0xffffff, 5 );
+spotLight.angle = 1.9;
+				spotLight.penumbra = 2;
+				spotLight.decay = 4;
+				spotLight.distance = 22;
+
+				spotLight.castShadow = true;
+				spotLight.shadow.mapSize.width = 1024;
+				spotLight.shadow.mapSize.height = 1024;
+				spotLight.shadow.camera.near = 1;
+				spotLight.shadow.camera.far = 200;
+				spotLight.shadow.focus = 1;
+				spotLight.position.set(-1, 4, 1.5);
+				// scene.add( spotLight )
+				// const dirLightHelper = new THREE.DirectionalLightHelper( spotLight, 1 );
+				// scene.add( dirLightHelper );
+var DwnspotLight = new THREE.SpotLight( 0xffffff, 1 );
+DwnspotLight.angle = 1.2;
+				DwnspotLight.penumbra = 2;
+				DwnspotLight.decay = 4;
+				DwnspotLight.distance = 52;
+
+				// DwnspotLight.castShadow = true;
+				DwnspotLight.shadow.mapSize.width = 1024;
+				DwnspotLight.shadow.mapSize.height = 1024;
+				DwnspotLight.shadow.camera.near = 1;
+				DwnspotLight.shadow.camera.far = 200;
+				DwnspotLight.shadow.focus = 1;
+				DwnspotLight.position.set(0, -1, 0);
+				scene.add( DwnspotLight )
+				// const dirLightHelper = new THREE.DirectionalLightHelper( DwnspotLight, 1 );
+				// scene.add( dirLightHelper );
+
+
+
+window.addEventListener( 'resize', onWindowResize );
+function onWindowResize() {
+
+renderer.setSize( window.innerWidth/ 4.4 , window.innerHeight/ 4.04  );
+renderer.render( scene, camera );
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+				
+				
+
+			
+				effect.setSize( window.innerWidth/ 2.4 , window.innerHeight/ 2.04  );
+				effect.render( scene, camera );
+			}
+
+
+	function animate () {
+	requestAnimationFrame( slowanim);
+	// effect.render( scene, camera );	
+  group.rotation.y += 0.05;
+
+																																																																																												
+
+	};
+	const slowanim= throttle(animate, 0);
+	var on
+	
+	setInterval(function(){
+	
+
+		effect.render( scene, camera );
+		if(rotate){
+			console.log(rotate)
+		 group.rotation.y += 0.1;
+	}
+		if(stobe){
+				console.log(scene.children.length)
+	on= Math.random()
+	setWirMat (on)
+	var r = ((on-0.7) * 12 + 12)			 	
+
+	scene.add( spotLight )
+	if(r> 0){
+		spotLight.distance = r;
+
+}
+else{
+	wireframeMaterial.opacity= 0
+	spotLight.distance = 0;
+	
+}
+	
+	
+}
+}, 100);
+		document.addEventListener( 'pointermove', onPointerMove );
+				function onPointerMove( event ) {
+					// oAscii.innerHTML = '<tr><td>' + '<' + '</td></tr>';
+					var x =(((event.clientX / window.innerWidth )* 2 - 1)*3.4)+ .2
+					var y= ((((event.clientY / window.innerHeight )* 2 - 1)*2.5)+ .1)*-1
+cube.position.set(x, y, 6)
+// console.log((((event.clientX / window.innerWidth )* 2 - 1)*3)-.2)
+	}
+	
+
+	// const slowanim= throttle(animate, 0);
+
+
+</script>
+	</body>
+</html>
